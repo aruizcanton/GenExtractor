@@ -10,8 +10,9 @@ SELECT
     WHERE MTDT_EXT_SCENARIO.TABLE_TYPE = 'F' and
     trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR_CAP', 'CLIENTE', 'CICLO', 
     'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION', 
-    'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR_CAP',
-    'ESTADO_CANAL_CAP');
+    'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR_CAP','DISTRIBUIDOR_CAP',
+    'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO_CAP',
+    'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD_CAP', 'CODIGO_POSTAL');
     
   cursor MTDT_SCENARIO (table_name_in IN VARCHAR2)
   is
@@ -150,6 +151,7 @@ SELECT
   v_existen_retrasados              VARCHAR2(1) := 'N';
   v_type                            VARCHAR2(1);
   v_line_size                       INTEGER;
+  v_tabla_dinamica                  BOOLEAN;
 
 
 /************/
@@ -822,7 +824,24 @@ SELECT
           cola := substr(cadena_resul, pos + length ('#OWNER_4#'));
           dbms_output.put_line ('La cola es: ' || cola);
           cadena_resul := cabeza || sustituto || cola;
+        end loop;
+        /* Busco [YYYYMM] */
+        sustituto := '&' || '2'; 
+        pos := 0;
+        loop
+          dbms_output.put_line ('Entro en el LOOP de OWNER_DM. La cadena es: ' || cadena_resul);
+          pos := instr(cadena_resul, '[YYYYMM]', pos+1);
+          exit when pos = 0;
+          dbms_output.put_line ('Pos es mayor que 0');
+          dbms_output.put_line ('Primer valor de Pos: ' || pos);
+          cabeza := substr(cadena_resul, (posicion_ant + 1), (pos - posicion_ant - 1));
+          dbms_output.put_line ('La cabeza es: ' || cabeza);
+          dbms_output.put_line ('La  sustitutoria es: ' || sustituto);
+          cola := substr(cadena_resul, pos + length ('[YYYYMM]'));
+          dbms_output.put_line ('La cola es: ' || cola);
+          cadena_resul := cabeza || sustituto || cola;
         end loop;                
+        
       end if;
       return cadena_resul;
     end;
@@ -1841,6 +1860,7 @@ begin
     fetch MTDT_TABLA
     into reg_tabla;
     exit when MTDT_TABLA%NOTFOUND;
+    v_tabla_dinamica := false;  /* Por defecto cada interfaz no tiene tabla dinamica */
     dbms_output.put_line ('Estoy en el primero LOOP. La tabla que tengo es: ' || reg_tabla.TABLE_NAME);
     nombre_fich_carga := REQ_NUMBER || '_' || reg_tabla.TABLE_NAME || '.sh';
     --nombre_fich_exchange := 'load_ex_' || reg_tabla.TABLE_NAME || '.sh';
@@ -1872,7 +1892,7 @@ begin
     /* (20160402) Angel Ruiz. NF:Si el fichero es de ancho fijo */
     /* hay que calcular la longitud de la linea antes de nada */
     v_type := 'N';
-    select TYPE into v_type from MTDT_INTERFACE_SUMMARY where CONCEPT_NAME = reg_tabla.TABLE_NAME;
+    select TYPE into v_type from MTDT_INTERFACE_SUMMARY where trim(CONCEPT_NAME) = trim(reg_tabla.TABLE_NAME);
     if (v_type = 'P') then
       /* Se trata de un fichero que se ha de extraer por posicion */
       select sum(length) into v_line_size from MTDT_INTERFACE_DETAIL where CONCEPT_NAME = reg_tabla.TABLE_NAME;
@@ -1976,6 +1996,14 @@ begin
             fetch MTDT_TC_DETAIL
             into reg_detail;
             exit when MTDT_TC_DETAIL%NOTFOUND;
+            /* (20160414) Angel Ruiz. Miramos si hay alguna tabla dinamica que acabe con */
+            /* [YYYYMM] para generar el procedure de manera adecuada */
+            if (instr(reg_detail.TABLE_LKUP, '[YYYYMM]') > 0) then
+              /* Hay una tabla dinamica. Ponemos el switch a true */
+              /* Para posteriormente cuando generamos el Shell script, hacerlo */
+              /* de manera adecuada */
+              v_tabla_dinamica := true;
+            end if;
             columna := genera_campo_select (reg_detail);
             if (primera_col = 1) then
               if (reg_scenario.TYPE = 'S') then
@@ -2020,7 +2048,12 @@ begin
                   when reg_detail.TYPE = 'IM' then
                     /* Se trata de un valor de tipo importe */
                     --UTL_FILE.put_line(fich_salida_pkg, 'CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD || ', '' '') ELSE LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0'') END' || '          --' || reg_detail.TABLE_COLUMN);
-                    UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);                    
+                    if (instr(reg_detail.LONGITUD, ',') > 0 ) then
+                      /* Quiere decir que en la longitud aparecen zona de decimales */
+                      UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    else
+                      UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    end if;
                   when reg_detail.TYPE = 'FE' then
                     /* Se trata de un valor de tipo fecha */
                     if (reg_detail.LONGITUD = 8) then
@@ -2078,7 +2111,12 @@ begin
                   when reg_detail.TYPE = 'IM' then
                     /* Se trata de un valor de tipo importe */
                     --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD || ', '' '') ELSE LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                    if (instr(reg_detail.LONGITUD, ',') > 0 ) then
+                      /* Quiere decir que en la longitud aparecen zona de decimales */
+                      UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    else
                       UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    end if;
                   when reg_detail.TYPE = 'FE' then
                     /* Se trata de un valor de tipo fecha */
                     if (reg_detail.LONGITUD = 8) then
@@ -2735,6 +2773,10 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    fi');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  echo "Fecha a considerar ${FECHA}"');
+    if (v_tabla_dinamica = true) then
+      /* El interfaz tiene una tabla dinamica, por lo que hay que obtener la fecha YYYYMM */
+      UTL_FILE.put_line(fich_salida_load,'  FECHA_MES=`echo ${FECHA} | awk ''{ printf "%s", substr($1,0,6) ; }''`');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '  return 0');
     UTL_FILE.put_line(fich_salida_load, '}');
     --UTL_FILE.put_line(fich_salida_load, '################################################################################');
@@ -2766,7 +2808,13 @@ begin
     UTL_FILE.put_line(fich_salida_load, '{');
     UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="${NOM_INTERFAZ}_${FECHA}.dat"');
     UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SQL="${REQ_NUM}_' || reg_tabla.TABLE_NAME || '.sql"');
-    UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+    if (v_tabla_dinamica = true) then
+      /* (20160414) Angel Ruiz. Si existe tabla dinamica, entonces hay que hacer una llamada al sqlplus con un parametro mas  */
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES}');
+    else
+      /* (20160414) Angel Ruiz. Si NO existe tabla dinamica, entonces hacemos la llamada normal  */
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar la interfaz ${ARCHIVO_SQL} (ERROR al ejecutar sqlplus)."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar la interfaz ${ARCHIVO_SALIDA} (El error surgio al ejecutar sqlplus)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
