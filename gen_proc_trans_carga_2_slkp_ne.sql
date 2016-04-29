@@ -10,25 +10,26 @@ SELECT
     --WHERE MTDT_EXT_SCFORMA_PAGOENARIO.TABLE_TYPE = 'F' and
     WHERE
       (trim(MTDT_EXT_SCENARIO.STATUS) = 'P' or trim(MTDT_EXT_SCENARIO.STATUS) = 'D')
-    and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR_CAP', 'CLIENTE', 'CICLO', 
-    'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION', 
-    'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR_CAP','DISTRIBUIDOR_CAP',
-    'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO_CAP',
-    'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD_CAP', 'CODIGO_POSTAL', 'COLONIA_CAP', 'ESTADO_CAP', 
-    'MUNICIPIO_CAP', 'TERRITORIO', 'TIPO_BLOQUEO_CAP', 'PAIS_CAP', 'VENTAS_REGISTRADAS', 
-    'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL', 
-    'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA', 
-    'CANAL_DISTRIBUCION', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP', 
-    'CANAL_CAP', 'VENDEDOR_CAP', 'PUNTO_VENTA_CAP', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL', 
-    'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO', 
-    'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO', 
-    'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION', 
-    'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA');
-    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA', 
+      --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR',
+    --'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO', 'CICLO', 
+    --'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION', 
+    --'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR',
+    --'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO',
+    --'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD', 'CODIGO_POSTAL', 'COLONIA_CAP', 'ESTADO', 
+    --'MUNICIPIO', 'TERRITORIO', 'TIPO_BLOQUEO', 'PAIS', 'VENTAS_REGISTRADAS', 
+    --'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL', 
+    --'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA', 
+    --'CANAL_DISTRIBUCION', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP', 
+    --'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL', 
+    --'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO', 
+    --'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO', 
+    --'MOVIMIENTO_ABO', 'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION', 
+    --'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA');
+      --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA', 
     --'MOVIMIENTO_ABO', 'PLAN_TARIFARIO',
     --'CATEGORIA_CLIENTE', 'CICLO', 'ESTATUS_OPERACION', 'FORMA_PAGO', 'PROMOCION', 'SEGMENTO_CLIENTE', 
     --'GRUPO_ABONADO', 'REL_GRUPO_ABONADO');
-    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('VENTA_EQUIPO');
+    and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('CUENTA');
   cursor MTDT_SCENARIO (table_name_in IN VARCHAR2)
   is
     SELECT 
@@ -2045,7 +2046,15 @@ begin
     select TYPE into v_type from MTDT_INTERFACE_SUMMARY where trim(CONCEPT_NAME) = trim(reg_tabla.TABLE_NAME);
     if (v_type = 'P') then
       /* Se trata de un fichero que se ha de extraer por posicion */
-      select sum(length) into v_line_size from MTDT_INTERFACE_DETAIL where CONCEPT_NAME = reg_tabla.TABLE_NAME;
+      --select sum(length) into v_line_size from MTDT_INTERFACE_DETAIL where trim(CONCEPT_NAME) = reg_tabla.TABLE_NAME;
+      select 
+        sum(to_number(case 
+        when instr(mtdt_interface_detail.length, ',') > 0 then 
+          (trim(substr(mtdt_interface_detail.length, 1, instr(mtdt_interface_detail.length, ',') - 1)))
+        else
+          trim(mtdt_interface_detail.length)
+        end)) into v_line_size
+      from mtdt_interface_detail where trim(CONCEPT_NAME) = reg_tabla.TABLE_NAME;      
     end if;
     /* (20160402) Angel Ruiz. Fin NF*/
     UTL_FILE.put_line (fich_salida_pkg,'WHENEVER SQLERROR EXIT 1;');
@@ -2590,7 +2599,7 @@ begin
       UTL_FILE.put_line(fich_salida_load, '      whenever sqlerror exit 1');
       UTL_FILE.put_line(fich_salida_load, '      set pagesize 0');
       UTL_FILE.put_line(fich_salida_load, '      set heading off');
-      UTL_FILE.put_line(fich_salida_load, '      select to_char(to_date( SYSDATE,''YYYYMMDD''),''YYYYMMDD'')');
+      UTL_FILE.put_line(fich_salida_load, '      select to_char(SYSDATE,''YYYYMMDD'')');
       UTL_FILE.put_line(fich_salida_load, '      from dual;');
       UTL_FILE.put_line(fich_salida_load, '    quit');
       UTL_FILE.put_line(fich_salida_load, '    !eof`');
@@ -2670,37 +2679,37 @@ begin
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz()');
     UTL_FILE.put_line(fich_salida_load, '{');
-    UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="${NOM_INTERFAZ}_${FECHA}.dat"');
+    UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="${NOM_INTERFAZ}_${FECHA}"');
     UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SQL="${REQ_NUM}_' || reg_tabla.TABLE_NAME || '.sql"');
     if (v_tabla_dinamica = true and v_fecha_ini_param = false and v_fecha_fin_param = false) then
       /* (20160414) Angel Ruiz. Si existe tabla dinamica, entonces hay que hacer una llamada al sqlplus con un parametro mas  */
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES}');
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat ${FECHA_MES}');
     elsif (v_tabla_dinamica = true and v_fecha_ini_param = true and v_fecha_fin_param = true) then
       /* (20160414) Angel Ruiz. Si NO existe tabla dinamica, entonces hacemos la llamada normal  */
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES} ${FECHA} ${FECHA_FIN}');
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat ${FECHA_MES} ${FECHA} ${FECHA_FIN}');
     elsif (v_tabla_dinamica = false and v_fecha_ini_param = true and v_fecha_fin_param = true) then
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA} ${FECHA_FIN}');
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat ${FECHA} ${FECHA_FIN}');
     else  
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat');
     end if;
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar la interfaz ${ARCHIVO_SQL} (ERROR al ejecutar sqlplus)."');
-    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar la interfaz ${ARCHIVO_SALIDA} (El error surgio al ejecutar sqlplus)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar la interfaz ${ARCHIVO_SALIDA}.dat (El error surgio al ejecutar sqlplus)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
-    UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+    UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat');
     UTL_FILE.put_line(fich_salida_load, '  return 0');
     UTL_FILE.put_line(fich_salida_load, '}');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
-    UTL_FILE.put_line(fich_salida_load, '# SE VALIDA EL NUMERO DE REGISTROS DE LA INTERFAZ                                                       #');
+    UTL_FILE.put_line(fich_salida_load, '# SE VALIDA EL NUMERO DE REGISTROS DE LA INTERFAZ                              #');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, 'ValidaConteo()');
     UTL_FILE.put_line(fich_salida_load, '{');
-    UTL_FILE.put_line(fich_salida_load, '  CONTEO_ARCHIVO=`cat ${PATH_SALIDA}${ARCHIVO_SALIDA} | wc -l`');
+    UTL_FILE.put_line(fich_salida_load, '  CONTEO_ARCHIVO=`cat ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat | wc -l`');
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar el conteo del fichero (ERROR al ejecutar wc)."');
-    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar el conteo de la interfaz ${ARCHIVO_SALIDA} (El error surgio al ejecutar wc)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar el conteo de la interfaz ${ARCHIVO_SALIDA}.dat (El error surgio al ejecutar wc)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
@@ -2723,19 +2732,39 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Los conteos no coinciden (ERROR al ejecutar comparacion de conteos )."');
     UTL_FILE.put_line(fich_salida_load, '    echo "La validacion de conteo ha fallado, favor de validar la extraccion antes de continuar" | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
-    UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '}');
-    
+    UTL_FILE.put_line(fich_salida_load, '################################################################################');
+    UTL_FILE.put_line(fich_salida_load, '# SE GENERA EL GENERA EL FICHERO DE FLAG                                       #');
+    UTL_FILE.put_line(fich_salida_load, '################################################################################');
+    UTL_FILE.put_line(fich_salida_load, 'GeneraFlag()');
+    UTL_FILE.put_line(fich_salida_load, '{');
+    UTL_FILE.put_line(fich_salida_load, '  echo "INICIA LA CREACION DEL ARCHIVO ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag [`date +%d/%m/%Y\ %H:%M:%S`]"');
+    UTL_FILE.put_line(fich_salida_load, '  echo ${CONTEO_ARCHIVO}');
+    UTL_FILE.put_line(fich_salida_load, '  echo ${B_CONTEO_BD}');
+    UTL_FILE.put_line(fich_salida_load, '  printf "%-50s%015d%015d\n" ${ARCHIVO_SALIDA} ${CONTEO_ARCHIVO} ${B_CONTEO_BD} > ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag');
+    UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Error al generar el archivo flag ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag"');
+    UTL_FILE.put_line(fich_salida_load, '    exit 3');
+    UTL_FILE.put_line(fich_salida_load, '  fi');
+    UTL_FILE.put_line(fich_salida_load, '  echo "TERMINA LA CREACION DEL ARCHIVO ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag [`date +%d/%m/%Y\ %H:%M:%S`]"');
+    UTL_FILE.put_line(fich_salida_load, '}');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# REALIZA EL ENVIO DE LOS ARCHIVOS POR SCP                                     #');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos()');
     UTL_FILE.put_line(fich_salida_load, '{');
-    UTL_FILE.put_line(fich_salida_load, '  scp ${PATH_SALIDA}${ARCHIVO_SALIDA} ${USER_DESTINO_SCP}@${DESTINO_IP}:${PATH_DESTINO}');
+    UTL_FILE.put_line(fich_salida_load, '  scp ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat ${USER_DESTINO_SCP}@${DESTINO_IP}:${PATH_DESTINO}');
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  Surgio un error en el envio del archivo."');
-    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al enviar el archivo ${ARCHIVO_SALIDA} al servidor ${DESTINO_IP}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al enviar el archivo ${ARCHIVO_SALIDA}.dat al servidor ${DESTINO_IP}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    UTL_FILE.put_line(fich_salida_load, '    exit 1');
+    UTL_FILE.put_line(fich_salida_load, '  fi');
+    UTL_FILE.put_line(fich_salida_load, '  scp ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag ${USER_DESTINO_SCP}@${DESTINO_IP}:${PATH_DESTINO}');
+    UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
+    UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  Surgio un error en el envio del archivo."');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al enviar el archivo ${ARCHIVO_SALIDA}.flag al servidor ${DESTINO_IP}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
@@ -2812,6 +2841,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '#OBTENEMOS Interfaz');
     UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz');
     UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
+    UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
     UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# FIN DEL SHELL                                                                #');
@@ -2820,18 +2850,6 @@ begin
     --UTL_FILE.put_line(fich_salida_load, 'InsertaFinOK');
     UTL_FILE.put_line(fich_salida_load, 'exit 0');
     UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    UTL_FILE.put_line(fich_salida_load, '');
-    
     
     /*************************/
     UTL_FILE.FCLOSE (fich_salida_load);
