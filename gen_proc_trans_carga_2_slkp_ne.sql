@@ -10,26 +10,36 @@ SELECT
     --WHERE MTDT_EXT_SCFORMA_PAGOENARIO.TABLE_TYPE = 'F' and
     WHERE
       (trim(MTDT_EXT_SCENARIO.STATUS) = 'P' or trim(MTDT_EXT_SCENARIO.STATUS) = 'D')
-      --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR',
-    --'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO', 'CICLO', 
-    --'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION', 
-    --'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR',
-    --'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO',
-    --'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD', 'CODIGO_POSTAL', 'COLONIA_CAP', 'ESTADO', 
-    --'MUNICIPIO', 'TERRITORIO', 'TIPO_BLOQUEO', 'PAIS', 'VENTAS_REGISTRADAS', 
-    --'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL', 
-    --'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA', 
-    --'CANAL_DISTRIBUCION', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP', 
-    --'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL', 
-    --'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO', 
-    --'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO', 
-    --'MOVIMIENTO_ABO', 'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION', 
-    --'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA');
-      --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA', 
-    --'MOVIMIENTO_ABO', 'PLAN_TARIFARIO',
-    --'CATEGORIA_CLIENTE', 'CICLO', 'ESTATUS_OPERACION', 'FORMA_PAGO', 'PROMOCION', 'SEGMENTO_CLIENTE', 
-    --'GRUPO_ABONADO', 'REL_GRUPO_ABONADO');
-    and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('CUENTA');
+    and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'DISTRIBUIDOR'
+    , 'PARQUE_ABO_POST'
+    , 'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO', 'CICLO' 
+    , 'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION' 
+    , 'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR'
+    , 'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO'
+    , 'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD', 'CODIGO_POSTAL', 'COLONIA', 'ESTADO' 
+    , 'MUNICIPIO', 'TERRITORIO', 'TIPO_BLOQUEO', 'PAIS' 
+    , 'VENTAS_REGISTRADAS' 
+    , 'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL'
+    , 'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA' 
+    , 'CANAL_OFERTA', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP'
+    , 'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL'
+    , 'PARQUE_SVA' 
+    , 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO'
+    , 'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO'
+    , 'MOVIMIENTO_ABO', 'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION'
+    , 'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI' 
+    , 'MOVIMIENTO_SVA'
+    );
+    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA' 
+    --, 'MOVIMIENTO_ABO', 'PLAN_TARIFARIO'
+    --, 'CATEGORIA_CLIENTE', 'CICLO', 'ESTATUS_OPERACION', 'FORMA_PAGO', 'PROMOCION', 'SEGMENTO_CLIENTE' 
+    --, 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO'
+    --);
+    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'DISTRIBUIDOR', 'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO'
+    --, 'CICLO', 'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION'
+    --,'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR',
+    --'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO'
+    --);
   cursor MTDT_SCENARIO (table_name_in IN VARCHAR2)
   is
     SELECT 
@@ -181,6 +191,9 @@ SELECT
   v_hay_sce_COMPUESTO               BOOLEAN := false;
   v_fecha_ini_param                 BOOLEAN:=false;
   v_fecha_fin_param                 BOOLEAN:=false;
+  v_long_total                      PLS_INTEGER;
+  v_long_parte_decimal              PLS_INTEGER;
+  v_mascara                         VARCHAR2(100);
 
 
 /************/
@@ -2196,11 +2209,40 @@ begin
                 when reg_detail.TYPE = 'IM' then
                   /* Se trata de un valor de tipo importe */
                   --UTL_FILE.put_line(fich_salida_pkg, 'CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD || ', '' '') ELSE LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  --if (instr(reg_detail.LONGITUD, ',') > 0 ) then
+                    /* Quiere decir que en la longitud aparecen zona de decimales */
+                  --  UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                  --else
+                  --  UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                  --end if;
+                  /*(20160503) Angel Ruiz */
+                  /* Se trata de un valor de tipo importe */
                   if (instr(reg_detail.LONGITUD, ',') > 0 ) then
                     /* Quiere decir que en la longitud aparecen zona de decimales */
-                    UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    /* Preparo la mascara */
+                    v_long_total := to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1));
+                    v_long_parte_decimal := to_number(trim(substr(reg_detail.LONGITUD, instr(reg_detail.LONGITUD, ',') +1)));
+                    v_mascara := 'S';
+                    for indice in  1..(v_long_total-v_long_parte_decimal-2)
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    v_mascara := v_mascara || '.';
+                    for indice in  1..v_long_parte_decimal
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    UTL_FILE.put_line(fich_salida_pkg, 'NVL(TO_CHAR(' || columna || ', ''' || v_mascara || '''), RPAD('' '', ' || to_char(to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
                   else
-                    UTL_FILE.put_line(fich_salida_pkg, 'NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    /* Quiere decir que en la longitud no aparece zona de decimales */
+                    v_long_total := to_number (trim(reg_detail.LONGITUD));
+                    v_long_parte_decimal := 0;
+                    v_mascara := 'S';
+                    for indice in  1..(v_long_total-v_long_parte_decimal-1)
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    UTL_FILE.put_line(fich_salida_pkg, 'NVL(TO_CHAR(' || columna || ', ''' || v_mascara || '''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
                   end if;
                 when reg_detail.TYPE = 'FE' then
                   /* Se trata de un valor de tipo fecha */
@@ -2259,11 +2301,40 @@ begin
                 when reg_detail.TYPE = 'IM' then
                   /* Se trata de un valor de tipo importe */
                   --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD || ', '' '') ELSE LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  --if (instr(reg_detail.LONGITUD, ',') > 0 ) then
+                    /* Quiere decir que en la longitud aparecen zona de decimales */
+                  --  UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                  --else
+                  --  UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                  --end if;
+                  /*(20160503) Angel Ruiz */
+                  /* Se trata de un valor de tipo importe */
                   if (instr(reg_detail.LONGITUD, ',') > 0 ) then
                     /* Quiere decir que en la longitud aparecen zona de decimales */
-                    UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', ''0''), RPAD('' '', ' || to_char((to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))+1)) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    /* Preparo la mascara */
+                    v_long_total := to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1));
+                    v_long_parte_decimal := to_number(trim(substr(reg_detail.LONGITUD, instr(reg_detail.LONGITUD, ',') +1)));
+                    v_mascara := 'S';
+                    for indice in  1..(v_long_total-v_long_parte_decimal-2)
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    v_mascara := v_mascara || '.';
+                    for indice in  1..v_long_parte_decimal
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    UTL_FILE.put_line(fich_salida_pkg, '|| NVL(TO_CHAR(' || columna || ', ''' || v_mascara || '''), RPAD('' '', ' || to_char(to_number(substr(reg_detail.LONGITUD, 1, instr(reg_detail.LONGITUD, ',') -1))) || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
                   else
-                    UTL_FILE.put_line(fich_salida_pkg, '|| NVL(LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
+                    /* Quiere decir que en la longitud no aparece zona de decimales */
+                    v_long_total := to_number (trim(reg_detail.LONGITUD));
+                    v_long_parte_decimal := 0;
+                    v_mascara := 'S';
+                    for indice in  1..(v_long_total-v_long_parte_decimal-1)
+                    loop
+                      v_mascara := v_mascara || '0';
+                    end loop;
+                    UTL_FILE.put_line(fich_salida_pkg, '|| NVL(TO_CHAR(' || columna || ', ''' || v_mascara || '''), RPAD('' '', ' || reg_detail.LONGITUD || ', '' ''))' || '          --' || reg_detail.TABLE_COLUMN);
                   end if;
                 when reg_detail.TYPE = 'FE' then
                   /* Se trata de un valor de tipo fecha */
@@ -2434,6 +2505,7 @@ begin
     --UTL_FILE.put_line(fich_salida_load, '    FCH_FIN,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_DATOS,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_CARGA,');
+    --UTL_FILE.put_line(fich_salida_load, '    FCH_DATOS,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_REGISTRO');
     --UTL_FILE.put_line(fich_salida_load, '  )');
     --UTL_FILE.put_line(fich_salida_load, '  SELECT');
@@ -2483,8 +2555,9 @@ begin
     --UTL_FILE.put_line(fich_salida_load, '    FCH_FIN,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_DATOS,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_CARGA,');
+    --UTL_FILE.put_line(fich_salida_load, '    NUM_INSERTS,');
+    --UTL_FILE.put_line(fich_salida_load, '    NUM_READS,');
     --UTL_FILE.put_line(fich_salida_load, '    FCH_REGISTRO');
-    --UTL_FILE.put_line(fich_salida_load, '  )');
     --UTL_FILE.put_line(fich_salida_load, '  SELECT');
     --UTL_FILE.put_line(fich_salida_load, '    mtdt_proceso.cve_proceso,');
     --UTL_FILE.put_line(fich_salida_load, '    1,');
@@ -2493,6 +2566,8 @@ begin
     --UTL_FILE.put_line(fich_salida_load, '    sysdate,');
     --UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
     --UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
+    --UTL_FILE.put_line(fich_salida_load, '    ${B_CONTEO_BD},');
+    --UTL_FILE.put_line(fich_salida_load, '    ${CONTEO_ARCHIVO},');
     --UTL_FILE.put_line(fich_salida_load, '    sysdate');
     --UTL_FILE.put_line(fich_salida_load, '  FROM');
     --UTL_FILE.put_line(fich_salida_load, '  ' || OWNER_MTDT || '.MTDT_PROCESO');
@@ -2528,20 +2603,24 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    then');
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: Error al generar el reporte ${REPORTE}, [No se genero el archivo .txt]"');
     UTL_FILE.put_line(fich_salida_load, '      echo "El reporte: ${REPORTE}, no se gener en el servidor." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 2');
     UTL_FILE.put_line(fich_salida_load, '    elif [ $CodErr -eq 3 ]');
     UTL_FILE.put_line(fich_salida_load, '    then');
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: Error al generar el reporte ${REPORTE}, [archivo .txt Vacio]"');
     UTL_FILE.put_line(fich_salida_load, '      echo "El reporte: ${REPORTE}, no tiene datos." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 3');
     UTL_FILE.put_line(fich_salida_load, '    elif [ $CodErr -eq 4 ]');
     UTL_FILE.put_line(fich_salida_load, '    then');
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: Error al generar el reporte ${REPORTE}, [Error de Oracle]"');
     UTL_FILE.put_line(fich_salida_load, '      echo "El reporte: ${REPORTE}, contiene errores de oracle." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 4');
     UTL_FILE.put_line(fich_salida_load, '    else');
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: Error al generar el reporte ${REPORTE}, [Error en archivo .txt]"');
     UTL_FILE.put_line(fich_salida_load, '      echo "El reporte: ${REPORTE}, contiene errores." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 1');
     UTL_FILE.put_line(fich_salida_load, '    fi');
     UTL_FILE.put_line(fich_salida_load, '  fi');
@@ -2558,6 +2637,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="Error BD ${REQ_NUM} (`date +%d/%m/%Y`)"');
     UTL_FILE.put_line(fich_salida_load, '    echo "Error no se pudo obtener el password para el usuario $2 y BD $1" | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1;');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  # Validamos la conexion a la base de datos');
@@ -2566,6 +2646,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="ERROR: No se pudo establecer la conexion, ${REQ_NUM} (`date +%d/%m/%Y`)"');
     UTL_FILE.put_line(fich_salida_load, '    echo "No se pudo conectar  a la BD: $1, USER=$2, PASSWORD=${PASSWORD}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  BD_PWD="${PASSWORD}"');
@@ -2591,6 +2672,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: ERROR: Al obtener la fecha."');
     UTL_FILE.put_line(fich_salida_load, '      echo "Surgio un error al obtener la fecha del sistema o el parametro no es un formato de fecha YYYYMMDD." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '      echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 1');
     UTL_FILE.put_line(fich_salida_load, '    fi');
     if (v_fecha_ini_param = true and v_fecha_fin_param = true) then
@@ -2607,6 +2689,7 @@ begin
       UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: ERROR: Al obtener la fecha."');
       UTL_FILE.put_line(fich_salida_load, '      echo "Surgio un error al obtener la fecha fin o el parametro no es un formato de fecha YYYYMMDD." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
       UTL_FILE.put_line(fich_salida_load, '      echo `date`');
+      --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
       UTL_FILE.put_line(fich_salida_load, '      exit 1');
       UTL_FILE.put_line(fich_salida_load, '    fi');
     end if;
@@ -2625,6 +2708,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: ERROR: Al obtener la fecha."');
     UTL_FILE.put_line(fich_salida_load, '      echo "Surgio un error al obtener la fecha del sistema o el parametro no es un formato de fecha YYYYMMDD." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '      echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '      exit 1');
     UTL_FILE.put_line(fich_salida_load, '    fi');
     if (v_fecha_ini_param = true and v_fecha_fin_param = true) then
@@ -2641,6 +2725,7 @@ begin
       UTL_FILE.put_line(fich_salida_load, '      SUBJECT="${REQ_NUM}: ERROR: Al obtener la fecha."');
       UTL_FILE.put_line(fich_salida_load, '      echo "Surgio un error al obtener la fecha final o el parametro no es un formato de fecha YYYYMMDD." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
       UTL_FILE.put_line(fich_salida_load, '      echo `date`');
+      --UTL_FILE.put_line(fich_salida_load, '      InsertaFinFallido');
       UTL_FILE.put_line(fich_salida_load, '      exit 1');
       UTL_FILE.put_line(fich_salida_load, '    fi');
     end if;
@@ -2696,6 +2781,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar la interfaz ${ARCHIVO_SQL} (ERROR al ejecutar sqlplus)."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar la interfaz ${ARCHIVO_SALIDA}.dat (El error surgio al ejecutar sqlplus)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}.dat');
@@ -2711,6 +2797,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar el conteo del fichero (ERROR al ejecutar wc)."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar el conteo de la interfaz ${ARCHIVO_SALIDA}.dat (El error surgio al ejecutar wc)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  B_CONTEO_BD=`sqlplus -s ${BD_USR}/${BD_PWD}@${BD_SID} <<!eof');
@@ -2726,6 +2813,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}: ERROR: Al obtener la Bandera de Conteo de Base de Datos."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al obtener el conteo de Base de datos para esta interfaz mediante la funcion GET_CUENTAINTERFAZ" | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  if [ ${CONTEO_ARCHIVO} -ne ${B_CONTEO_BD} ]; then');
@@ -2745,6 +2833,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '  printf "%-50s%015d%015d\n" ${ARCHIVO_SALIDA} ${CONTEO_ARCHIVO} ${B_CONTEO_BD} > ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag');
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    echo "Error al generar el archivo flag ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag"');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 3');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  echo "TERMINA LA CREACION DEL ARCHIVO ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag [`date +%d/%m/%Y\ %H:%M:%S`]"');
@@ -2759,6 +2848,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  Surgio un error en el envio del archivo."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al enviar el archivo ${ARCHIVO_SALIDA}.dat al servidor ${DESTINO_IP}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  scp ${PATH_SALIDA}${ARCHIVO_SALIDA}.flag ${USER_DESTINO_SCP}@${DESTINO_IP}:${PATH_DESTINO}');
@@ -2766,6 +2856,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  Surgio un error en el envio del archivo."');
     UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al enviar el archivo ${ARCHIVO_SALIDA}.flag al servidor ${DESTINO_IP}." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+    --UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  return 0');
@@ -2843,6 +2934,7 @@ begin
     UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
     UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
     UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
+    --UTL_FILE.put_line(fich_salida_load, 'InsertaFinOK');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# FIN DEL SHELL                                                                #');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
