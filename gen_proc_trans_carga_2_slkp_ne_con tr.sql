@@ -10,21 +10,23 @@ SELECT
     --WHERE MTDT_EXT_SCFORMA_PAGOENARIO.TABLE_TYPE = 'F' and
     WHERE
       (trim(MTDT_EXT_SCENARIO.STATUS) = 'P' or trim(MTDT_EXT_SCENARIO.STATUS) = 'D')
-      and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR',
-    'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO', 'CICLO', 
-    'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION', 
-    'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR',
-    'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO',
-    'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD', 'CODIGO_POSTAL', 'COLONIA', 'ESTADO', 
-    'MUNICIPIO', 'TERRITORIO', 'TIPO_BLOQUEO', 'PAIS', 'VENTAS_REGISTRADAS', 
-    'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL', 
-    'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA', 
-    'CANAL_OFERTA', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP', 
-    'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL', 
-    'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO', 
-    'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO', 
-    'MOVIMIENTO_ABO', 'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION', 
-    'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA');
+      and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'DISTRIBUIDOR'
+    , 'CLIENTE', 'GRUPO_ABONADO', 'REL_GRUPO_ABONADO', 'CICLO'
+    , 'CICLO_FACTURACION', 'CUENTA', 'ESTATUS_OPERACION'
+    , 'FORMA_PAGO', 'SEGMENTO_CLIENTE', 'TIPO_DISTRIBUIDOR'
+    , 'ESTADO_CANAL_CAP', 'TIPO_DOCUMENTO', 'CONCEPTO_PAGO', 'ESTADO_CANAL', 'CAUSA_BLOQUEO'
+    , 'NIR', 'CATEGORIA_CANAL_CAP', 'CIUDAD', 'CODIGO_POSTAL', 'COLONIA', 'ESTADO'
+    , 'MUNICIPIO', 'TERRITORIO', 'TIPO_BLOQUEO', 'PAIS', 'VENTAS_REGISTRADAS'
+    , 'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL'
+    , 'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA'
+    , 'CANAL_OFERTA', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP'
+    , 'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL'
+    , 'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO'
+    , 'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO'
+    , 'MOVIMIENTO_ABO', 'ESTADO_CONTACTO', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION'
+    , 'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA'
+    , 'CLIENTES_CONTACTOS'
+    , 'MOVIMIENTOS_TT', 'UNIDAD_FUNCIONAL', 'ORIGEN_PAGO', 'PROMOCION_CAMPANA', 'TIPO_OPERACION_TT');
       --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA', 
     --'MOVIMIENTO_ABO', 'PLAN_TARIFARIO',
     --'CATEGORIA_CLIENTE', 'CICLO', 'ESTATUS_OPERACION', 'FORMA_PAGO', 'PROMOCION', 'SEGMENTO_CLIENTE', 
@@ -163,6 +165,7 @@ SELECT
   OWNER_4                               VARCHAR2(60);
   BD_SID                                VARCHAR2(60);
   BD_USR                                VARCHAR2(60);
+  OWNER_EX                              VARCHAR2(60);
   
   l_FROM                                      lista_tablas_from := lista_tablas_from();
   l_WHERE                                   lista_condi_where := lista_condi_where();
@@ -1204,18 +1207,18 @@ SELECT
             --if (instr(l_FROM(indx),  reg_detalle_in.TABLE_LKUP, 0)) then
             --regexp_count(reg_per_val.AGREGATION,'^BAN_',1,'i') >0
             if (regexp_count(l_FROM(indx), reg_detalle_in.TABLE_LKUP) >0) then
-            --if (l_FROM(indx) = ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP) then
+            --if (l_FROM(indx) = ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP) then
               /* La misma tabla ya estaba en otro lookup */
               v_encontrado:='Y';
             end if;
           END LOOP;
           if (v_encontrado='Y') then
             v_alias := reg_detalle_in.TABLE_LKUP || '_' || l_FROM.count;
-            l_FROM (l_FROM.last) := ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP || ' "' || v_alias || '"' ;
+            l_FROM (l_FROM.last) := ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP || ' "' || v_alias || '"' ;
           else
             --v_alias := reg_detalle_in.TABLE_LKUP;
             v_alias := v_alias_table_look_up;
-            l_FROM (l_FROM.last) := ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP;
+            l_FROM (l_FROM.last) := ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP;
           end if;
         end if;
         /* Miramos la parte de las condiciones */
@@ -1354,7 +1357,7 @@ SELECT
               v_table_look_up := procesa_campo_filter(v_table_look_up);
             else
               /* La tabla de LKUP no esta calificada, entonces la califico */
-              v_table_look_up := OWNER_DM || '.' || v_table_look_up;
+              v_table_look_up := OWNER_EX || '.' || v_table_look_up;
             end if;
             mitabla_look_up := v_table_look_up || ' ' || v_alias_table_look_up;
             /* Busco si estaba ya en el FROM. Como es una tabla con ALIAS */
@@ -1364,7 +1367,7 @@ SELECT
             LOOP
               --if (regexp_count(l_FROM(indx), reg_detalle_in.TABLE_LKUP) >0) then
               if (regexp_count(l_FROM(indx), mitabla_look_up) >0) then
-              --if (l_FROM(indx) = ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP) then
+              --if (l_FROM(indx) = ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP) then
                 /* La misma tabla ya estaba en otro lookup */
                 v_encontrado:='Y';
               end if;
@@ -1384,7 +1387,7 @@ SELECT
             else
               /* La tabla de LKUP no esta calificada, entonces la califico */
               v_alias_table_look_up := v_table_look_up;
-              v_table_look_up := OWNER_DM || '.' || v_table_look_up;
+              v_table_look_up := OWNER_EX || '.' || v_table_look_up;
             end if;
             mitabla_look_up := v_table_look_up;
             v_encontrado:='N';
@@ -1394,7 +1397,7 @@ SELECT
               --regexp_count(reg_per_val.AGREGATION,'^BAN_',1,'i') >0
               --if (regexp_count(l_FROM(indx), reg_detalle_in.TABLE_LKUP) >0) then
               if (regexp_count(l_FROM(indx), mitabla_look_up) >0) then
-              --if (l_FROM(indx) = ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP) then
+              --if (l_FROM(indx) = ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP) then
                 /* La misma tabla ya estaba en otro lookup */
                 v_encontrado:='Y';
               end if;
@@ -1639,7 +1642,7 @@ SELECT
           valor_retorno := reg_detalle_in.VALUE;
         end if;
       when 'SEQ' then
-        valor_retorno := OWNER_DM || '.SEQ_' || nombre_tabla_reducido || '.NEXTVAL';
+        valor_retorno := OWNER_EX || '.SEQ_' || nombre_tabla_reducido || '.NEXTVAL';
         --if (instr(reg_detalle_in.VALUE, '.NEXTVAL') > 0) then
         --  valor_retorno := '    ' || reg_detalle_in.VALUE;
         --else
@@ -1682,17 +1685,17 @@ SELECT
             --if (instr(l_FROM(indx),  reg_detalle_in.TABLE_LKUP, 0)) then
             --regexp_count(reg_per_val.AGREGATION,'^BAN_',1,'i') >0
             if (regexp_count(l_FROM(indx), reg_detalle_in.TABLE_LKUP) >0) then
-            --if (l_FROM(indx) = ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP) then
+            --if (l_FROM(indx) = ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP) then
               /* La misma tabla ya estaba en otro lookup */
               v_encontrado:='Y';
             end if;
           END LOOP;
           if (v_encontrado='Y') then
             v_alias := reg_detalle_in.TABLE_LKUP || '_' || l_FROM.count;
-            l_FROM (l_FROM.last) := ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP || ' "' || v_alias || '"' ;
+            l_FROM (l_FROM.last) := ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP || ' "' || v_alias || '"' ;
           else
             v_alias := reg_detalle_in.TABLE_LKUP;
-            l_FROM (l_FROM.last) := ', ' || OWNER_DM || '.' || reg_detalle_in.TABLE_LKUP;
+            l_FROM (l_FROM.last) := ', ' || OWNER_EX || '.' || reg_detalle_in.TABLE_LKUP;
           end if;
         end if;
         /* Miramos la parte de las condiciones */
@@ -2005,6 +2008,7 @@ begin
   SELECT VALOR INTO OWNER_4 FROM MTDT_VAR_ENTORNO WHERE NOMBRE_VAR = 'OWNER_4';
   SELECT VALOR INTO BD_SID FROM MTDT_VAR_ENTORNO WHERE NOMBRE_VAR = 'BD_SID';
   SELECT VALOR INTO BD_USR FROM MTDT_VAR_ENTORNO WHERE NOMBRE_VAR = 'BD_USR';
+  SELECT VALOR INTO OWNER_EX FROM MTDT_VAR_ENTORNO WHERE NOMBRE_VAR = 'OWNER_EX';
   /* (20141223) FIN*/
 
   open MTDT_TABLA;
@@ -2356,8 +2360,8 @@ begin
           /* Comprobamos si la tabla esta calificada */
           UTL_FILE.put_line (fich_salida_pkg, '    '  || procesa_campo_filter(reg_scenario.TABLE_BASE_NAME));
         else
-          /* L atabla base no esta calificada, por defecto la calificamos con OWNER_DM */
-          UTL_FILE.put_line (fich_salida_pkg, '    '  || OWNER_DM || '.' || reg_scenario.TABLE_BASE_NAME);
+          /* L atabla base no esta calificada, por defecto la calificamos con OWNER_EX */
+          UTL_FILE.put_line (fich_salida_pkg, '    '  || OWNER_EX || '.' || reg_scenario.TABLE_BASE_NAME);
         end if;
         /* (20150109) Angel Ruiz. Anyadimos las tablas necesarias para hacer los LOOK_UP */
         v_hay_look_up:='N';
@@ -2500,8 +2504,8 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    sysdate,');
     UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
     UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
-    UTL_FILE.put_line(fich_salida_load, '    ${B_CONTEO_BD},');
     UTL_FILE.put_line(fich_salida_load, '    ${CONTEO_ARCHIVO},');
+    UTL_FILE.put_line(fich_salida_load, '    ${B_CONTEO_BD},');
     UTL_FILE.put_line(fich_salida_load, '    sysdate');
     UTL_FILE.put_line(fich_salida_load, '  FROM');
     UTL_FILE.put_line(fich_salida_load, '  ' || OWNER_MTDT || '.MTDT_PROCESO');
@@ -2553,8 +2557,8 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    sysdate,');
     UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
     UTL_FILE.put_line(fich_salida_load, '    to_date(''${FECHA}'', ''yyyymmdd''),');
-    UTL_FILE.put_line(fich_salida_load, '    ${B_CONTEO_BD},');
     UTL_FILE.put_line(fich_salida_load, '    ${CONTEO_ARCHIVO},');
+    UTL_FILE.put_line(fich_salida_load, '    ${B_CONTEO_BD},');
     UTL_FILE.put_line(fich_salida_load, '    sysdate');
     UTL_FILE.put_line(fich_salida_load, '  FROM');
     UTL_FILE.put_line(fich_salida_load, '  ' || OWNER_MTDT || '.MTDT_PROCESO');
