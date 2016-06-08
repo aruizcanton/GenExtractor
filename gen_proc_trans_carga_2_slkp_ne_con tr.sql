@@ -23,7 +23,7 @@ SELECT
     , 'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL'
     , 'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO'
     , 'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO'
-      , 'MOVIMIENTO_ABO', 'ESTADO_TAREA', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION'
+    , 'MOVIMIENTO_ABO', 'ESTADO_TAREA', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION'
     , 'MOTIVO_OPERACION_TT', 'TIPO_CARACT_OFERTA', 'VENTA_EQUIPO', 'ICC', 'FACTURACION_IMEI', 'MOVIMIENTO_SVA'
     , 'CLIENTES_CONTACTOS'
     , 'MOVIMIENTOS_TT', 'UNIDAD_FUNCIONAL', 'ORIGEN_PAGO', 'PROMOCION_CAMPANA', 'TIPO_OPERACION_TT'
@@ -36,7 +36,7 @@ SELECT
     --'MOVIMIENTO_ABO', 'PLAN_TARIFARIO',
     --'CATEGORIA_CLIENTE', 'CICLO', 'ESTATUS_OPERACION', 'FORMA_PAGO', 'PROMOCION', 'SEGMENTO_CLIENTE', 
     --'GRUPO_ABONADO', 'REL_GRUPO_ABONADO');
-    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_SVA');
+    --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('ICC');
   cursor MTDT_SCENARIO (table_name_in IN VARCHAR2)
   is
     SELECT 
@@ -942,7 +942,14 @@ SELECT
           cadena_resul := cabeza || sustituto || cola;
         end loop;
         /* Busco [YYYYMM] */
-        sustituto := '&' || '2'; 
+        if (v_type_validation = 'I') then
+        /* (20160606) Angel Ruiz. NF: Se trata de que el tipo de validacion es I lo que significa */
+        /* que se extrae desde el origen y va directamente a las tablas de Staging sin pasar por un fichero plano */
+        /* por lo que no se pasara como parametro el nombre del fichero plano */
+          sustituto := '&' || '1'; 
+        else
+          sustituto := '&' || '2';
+        end if;
         pos := 0;
         loop
           dbms_output.put_line ('Entro en el LOOP de OWNER_DM. La cadena es: ' || cadena_resul);
@@ -965,10 +972,21 @@ SELECT
           v_fecha_ini_param := true;
           if (v_tabla_dinamica = true) then
             /* Si tb existen tablas dinamicas entonces el parametro sera el 3 */
-            sustituto := '&' || '3';
+            if (v_type_validation = 'I') then
+            /* (20160607) Angel Ruiz. Si se trata de tipo de validacion I significa */
+            /* que no se le pasa el nombre del fichero plano como parametro, por lo que */
+            /* por lo que el numero de parametros sera uno menos */
+              sustituto := '&' || '2';
+            else
+              sustituto := '&' || '3';
+            end if;
           else
             /* si no el 2 */
-            sustituto := '&' || '2';
+            if (v_type_validation = 'I') then
+              sustituto := '&' || '1';
+            else
+              sustituto := '&' || '2';
+            end if;
           end if;
           loop
             dbms_output.put_line ('Entro en el LOOP de OWNER_DM. La cadena es: ' || cadena_resul);
@@ -992,10 +1010,24 @@ SELECT
           v_fecha_fin_param := true;
           if (v_tabla_dinamica = true) then
             /* Si tb existen tablas dinamicas entonces el parametro sera el 3 */
-            sustituto := '&' || '4';
+            if (v_type_validation = 'I') then
+            /* (20160607) Angel Ruiz. Si se trata de tipo de validacion I significa */
+            /* que no se le pasa el nombre del fichero plano como parametro, por lo que */
+            /* por lo que el numero de parametros sera uno menos */
+              sustituto := '&' || '3';
+            else
+              sustituto := '&' || '4';
+            end if;
           else
             /* si no el 2 */
-            sustituto := '&' || '3';
+            if (v_type_validation = 'I') then
+            /* (20160607) Angel Ruiz. Si se trata de tipo de validacion I significa */
+            /* que no se le pasa el nombre del fichero plano como parametro, por lo que */
+            /* por lo que el numero de parametros sera uno menos */
+              sustituto := '&' || '2';
+            else            
+              sustituto := '&' || '3';
+            end if;
           end if;
           loop
             dbms_output.put_line ('Entro en el LOOP de OWNER_DM. La cadena es: ' || cadena_resul);
@@ -1516,6 +1548,12 @@ SELECT
                 else
                   l_WHERE(l_WHERE.last) :=  v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' ' || transformo_between(v_alias, table_columns_lkup(indx), false);
                 end if;
+              elsif (regexp_count(upper(table_columns_lkup(indx)), 'TRIM *\(') > 0) then
+                if (reg_detalle_in."OUTER" = 'Y') then
+                  l_WHERE(l_WHERE.last) :=  v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' = ' || table_columns_lkup(indx) || ' (+)';
+                else
+                  l_WHERE(l_WHERE.last) :=  v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' = ' || table_columns_lkup(indx);
+                end if;                
               else
                 if (reg_detalle_in."OUTER" = 'Y') then
                   l_WHERE(l_WHERE.last) :=  v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' = ' || v_alias || '.' || table_columns_lkup(indx) || ' (+)';
@@ -1535,6 +1573,12 @@ SELECT
                   l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' ' || transformo_between(v_alias, table_columns_lkup(indx), true);
                 else
                   l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' ' || transformo_between(v_alias, table_columns_lkup(indx), false);
+                end if;
+              elsif (regexp_count(upper(table_columns_lkup(indx)), 'TRIM *\(') > 0) then
+                if (reg_detalle_in."OUTER" = 'Y') then
+                  l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' = ' || table_columns_lkup(indx) || ' (+)';
+                else
+                  l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || ie_column_lkup(indx) || ' = ' || table_columns_lkup(indx);
                 end if;
               else
                 if (reg_detalle_in."OUTER" = 'Y') then
@@ -1577,6 +1621,12 @@ SELECT
                 else
                   l_WHERE(l_WHERE.last) :=  v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP || ' ' || transformo_between(v_alias, reg_detalle_in.TABLE_COLUMN_LKUP, false);
                 end if;
+              elsif (regexp_count(upper(reg_detalle_in.TABLE_COLUMN_LKUP), 'TRIM *\(') > 0) then
+                if (reg_detalle_in."OUTER" = 'Y') then
+                  l_WHERE(l_WHERE.last) := v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP ||  ' = ' || reg_detalle_in.TABLE_COLUMN_LKUP || ' (+)';
+                else
+                  l_WHERE(l_WHERE.last) := v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP ||  ' = ' || reg_detalle_in.TABLE_COLUMN_LKUP;
+                end if;
               else
                 if (reg_detalle_in."OUTER" = 'Y') then
                   l_WHERE(l_WHERE.last) := v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP ||  ' = ' || v_alias || '.' || reg_detalle_in.TABLE_COLUMN_LKUP || ' (+)';
@@ -1597,6 +1647,13 @@ SELECT
                   l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP || ' ' || transformo_between(v_alias, reg_detalle_in.TABLE_COLUMN_LKUP, true);
                 else
                   l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP || ' ' || transformo_between(v_alias, reg_detalle_in.TABLE_COLUMN_LKUP, false);
+                end if;
+              elsif (regexp_count(upper(reg_detalle_in.TABLE_COLUMN_LKUP), 'TRIM *\(') > 0) then
+                dbms_output.put_line('ESTOY . La Columna es: ' || reg_detalle_in.IE_COLUMN_LKUP);
+                if (reg_detalle_in."OUTER" = 'Y') then
+                  l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP || ' = ' || reg_detalle_in.TABLE_COLUMN_LKUP || ' (+)';
+                else
+                  l_WHERE(l_WHERE.last) :=  ' AND ' || v_alias_table_base_name || '.' || reg_detalle_in.IE_COLUMN_LKUP || ' = ' || reg_detalle_in.TABLE_COLUMN_LKUP;
                 end if;
               else
                 if (reg_detalle_in."OUTER" = 'Y') then
@@ -2107,23 +2164,35 @@ begin
         end)) into v_line_size
       from mtdt_interface_detail where trim(CONCEPT_NAME) = reg_tabla.TABLE_NAME;      
     end if;
+    /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
+    /* va directamente a las tablas de Stagin */
+    select nvl(TYPE_VALIDATION, 'T') into v_type_validation from MTDT_INTERFACE_SUMMARY where trim(CONCEPT_NAME) = trim(reg_tabla.TABLE_NAME);
+    
     UTL_FILE.put_line (fich_salida_pkg,'WHENEVER SQLERROR EXIT 1;');
     UTL_FILE.put_line (fich_salida_pkg,'WHENEVER OSERROR EXIT 2;');
-    if (v_type = 'P') then
-      UTL_FILE.put_line (fich_salida_pkg,'SET LINESIZE ' || v_line_size || ';');
+    
+    if (v_type_validation <> 'I') then
+      /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
+      /* va directamente a las tablas de Stagin */
+      /* Solo ponemos la cabecera del fichero SQL si no se trata del tipo que va directamente a tablas de Staging sin */
+      /* pasar por fichero plano */
+      if (v_type = 'P') then
+        UTL_FILE.put_line (fich_salida_pkg,'SET LINESIZE ' || v_line_size || ';');
+      end if;
+      UTL_FILE.put_line (fich_salida_pkg,'SET PAGESIZE 0;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET FEEDBACK OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET VERIFY OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET HEADING OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET DOC OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET ECHO OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET TRIMSPOOL OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET TERM OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET TRIMS OFF;');
+      UTL_FILE.put_line (fich_salida_pkg,'SET ARRAYSIZE 2500;');
+      UTL_FILE.put_line (fich_salida_pkg,'');
+      UTL_FILE.put_line (fich_salida_pkg,'SPOOL &' || '1');
     end if;
-    UTL_FILE.put_line (fich_salida_pkg,'SET PAGESIZE 0;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET FEEDBACK OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET VERIFY OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET HEADING OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET DOC OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET ECHO OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET TRIMSPOOL OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET TERM OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET TRIMS OFF;');
-    UTL_FILE.put_line (fich_salida_pkg,'SET ARRAYSIZE 2500;');
     UTL_FILE.put_line (fich_salida_pkg,'');
-    UTL_FILE.put_line (fich_salida_pkg,'SPOOL &' || '1');
     lista_scenarios_presentes.delete;
     
     /******/
@@ -2134,10 +2203,13 @@ begin
 
     /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
     /* va directamente a las tablas de Stagin */
-    select nvl(TYPE_VALIDATION, 'T') into v_type_validation from MTDT_INTERFACE_SUMMARY where trim(CONCEPT_NAME) = trim(reg_tabla.TABLE_NAME);
+    select nvl(UPPER(TRIM(TYPE_VALIDATION)), 'T') into v_type_validation from MTDT_INTERFACE_SUMMARY where trim(CONCEPT_NAME) = trim(reg_tabla.TABLE_NAME);
     if (v_type_validation = 'I') then
       /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
       /* va directamente a las tablas de STAGING. Se generan por lo tanto INSERTs */
+      UTL_FILE.put_line (fich_salida_pkg,'');
+      UTL_FILE.put_line (fich_salida_pkg,'TRUNCATE TABLE ' || OWNER_SA || '.SA_' || reg_tabla.TABLE_NAME || ';');      
+      UTL_FILE.put_line (fich_salida_pkg,'');
       UTL_FILE.put_line (fich_salida_pkg,'INSERT INTO ' || OWNER_SA || '.SA_' || reg_tabla.TABLE_NAME);
       UTL_FILE.put_line (fich_salida_pkg,'(');
       primera_col := 1;
@@ -2181,7 +2253,6 @@ begin
     close MTDT_SCENARIO;
 
     /* GENERACION DEL PACKAGE BODY */
-    UTL_FILE.put_line(fich_salida_pkg,'');
 
     dbms_output.put_line ('Estoy en PACKAGE IMPLEMENTATION. :-)');
     
@@ -2235,7 +2306,26 @@ begin
           end if;
           columna := genera_campo_select (reg_detail);
           if (primera_col = 1) then
-            if (reg_scenario.TYPE = 'S') then
+            if (v_type_validation = 'I') then
+              /* (20160606) Angel Ruiz. NF: Se trata de que el tipo de validacion es I lo que significa */
+              /* que se extrae desde el origen y va directamente a las tablas de Staging sin pasar por un fichero plano */
+              case 
+                when reg_detail.TYPE = 'NU' then
+                  if (reg_detail.RUL = 'HARDC') then
+                    /* Se trata de un valor literal */
+                    /* Comprobamos si es un NA# */
+                    if (reg_detail.VALUE = 'NA') then
+                      UTL_FILE.put_line(fich_salida_pkg, '-1');
+                    else
+                      UTL_FILE.put_line(fich_salida_pkg, columna || '          --' || reg_detail.TABLE_COLUMN);
+                    end if;
+                  else
+                    UTL_FILE.put_line(fich_salida_pkg, columna || '          --' || reg_detail.TABLE_COLUMN);
+                  end if;
+                else
+                  UTL_FILE.put_line(fich_salida_pkg, columna || '          --' || reg_detail.TABLE_COLUMN);
+              end case;
+            elsif (reg_scenario.TYPE = 'S') then
               /* Se trata de un fichero plano con separador */
               case 
                 when reg_detail.TYPE = 'NU' then
@@ -2320,7 +2410,26 @@ begin
             end if;
             primera_col := 0;
           else /* NO SE TRATA DE LA PRIMERA COLUMNA */
-            if (reg_scenario.TYPE = 'S') then
+            if (v_type_validation = 'I') then
+              /* (20160606) Angel Ruiz. NF: Se trata de que el tipo de validacion es I lo que significa */
+              /* que se extrae desde el origen y va directamente a las tablas de Staging sin pasar por un fichero plano */
+              case 
+                when reg_detail.TYPE = 'NU' then
+                  if (reg_detail.RUL = 'HARDC') then
+                    /* Se trata de un valor literal */
+                    /* Comprobamos si es un NA# */
+                    if (reg_detail.VALUE = 'NA') then
+                      UTL_FILE.put_line(fich_salida_pkg, ', ' || '-1' || '          --' || reg_detail.TABLE_COLUMN);
+                    else
+                      UTL_FILE.put_line(fich_salida_pkg, ', ' || columna || '          --' || reg_detail.TABLE_COLUMN);
+                    end if;
+                  else
+                    UTL_FILE.put_line(fich_salida_pkg, ', ' || columna || '          --' || reg_detail.TABLE_COLUMN);
+                  end if;
+                else
+                  UTL_FILE.put_line(fich_salida_pkg, ', ' || columna || '          --' || reg_detail.TABLE_COLUMN);
+              end case;
+            elsif (reg_scenario.TYPE = 'S') then
               /* Se trata de un fichero plano con separador */
               case 
                 when reg_detail.TYPE = 'NU' then
@@ -2516,7 +2625,11 @@ begin
     /**************/
     
     UTL_FILE.put_line(fich_salida_pkg, '');
-    UTL_FILE.put_line(fich_salida_pkg, 'SPOOL OFF;');
+    /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
+    /* va directamente a las tablas de Stagin */
+    if (v_type_validation <> 'I') then
+      UTL_FILE.put_line(fich_salida_pkg, 'SPOOL OFF;');
+    end if;
     UTL_FILE.put_line(fich_salida_pkg, 'exit SUCCESS;');
 
     /******/
@@ -2875,16 +2988,46 @@ begin
     UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SQL="${REQ_NUM}_' || reg_tabla.TABLE_NAME || '.sql"');
     if (v_tabla_dinamica = true and v_fecha_ini_param = false and v_fecha_fin_param = false) then
       /* (20160414) Angel Ruiz. Si existe tabla dinamica, entonces hay que hacer una llamada al sqlplus con un parametro mas  */
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES}');
+      if (v_type_validation = 'I') then
+        /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+        /* va a las tablas de Stagin sin pasar por ficehro plano */
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${FECHA_MES}');
+      else
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES}');
+      end if;
     elsif (v_tabla_dinamica = true and v_fecha_ini_param = true and v_fecha_fin_param = true) then
       /* (20160414) Angel Ruiz. Si NO existe tabla dinamica, entonces hacemos la llamada normal  */
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES} ${FECHA} ${FECHA_FIN}');
+      if (v_type_validation = 'I') then
+        /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+        /* va a las tablas de Stagin sin pasar por ficehro plano */
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${FECHA_MES} ${FECHA} ${FECHA_FIN}');
+      else
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES} ${FECHA} ${FECHA_FIN}');
+      end if;
     elsif (v_tabla_dinamica = true and v_fecha_ini_param = true and v_fecha_fin_param = false) then
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES} ${FECHA}');
+      if (v_type_validation = 'I') then
+        /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+        /* va a las tablas de Stagin sin pasar por ficehro plano */
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${FECHA_MES} ${FECHA}');
+      else
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA_MES} ${FECHA}');
+      end if;
     elsif (v_tabla_dinamica = false and v_fecha_ini_param = true and v_fecha_fin_param = true) then
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA} ${FECHA_FIN}');
+      if (v_type_validation = 'I') then
+        /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+        /* va a las tablas de Stagin sin pasar por ficehro plano */
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${FECHA} ${FECHA_FIN}');
+      else
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA} ${FECHA} ${FECHA_FIN}');
+      end if;
     else  
-      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+      if (v_type_validation = 'I') then
+        /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+        /* va a las tablas de Stagin sin pasar por ficehro plano */
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL}');
+      else
+        UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+      end if;
     end if;
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar la interfaz ${ARCHIVO_SQL} (ERROR al ejecutar sqlplus)."');
@@ -2893,7 +3036,11 @@ begin
     UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
     UTL_FILE.put_line(fich_salida_load, '  fi');
-    UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+    if (v_type_validation <> 'I') then
+      /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+      /* va a las tablas de Stagin sin pasar por ficehro plano */
+      UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '  return 0');
     UTL_FILE.put_line(fich_salida_load, '}');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
@@ -2901,10 +3048,23 @@ begin
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, 'ValidaConteo()');
     UTL_FILE.put_line(fich_salida_load, '{');
-    UTL_FILE.put_line(fich_salida_load, '  CONTEO_ARCHIVO=`cat ${PATH_SALIDA}${ARCHIVO_SALIDA} | wc -l`');
+    if (v_type_validation = 'I') then
+      /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+      /* va a las tablas de Stagin sin pasar por ficehro plano */
+      UTL_FILE.put_line(fich_salida_load, '  CONTEO_ARCHIVO=`sqlplus -s ${BD_USR}/${BD_PWD}@${BD_SID} <<!eof');
+      UTL_FILE.put_line(fich_salida_load, 'whenever sqlerror exit 1');
+      UTL_FILE.put_line(fich_salida_load, 'set pagesize 0');
+      UTL_FILE.put_line(fich_salida_load, 'set heading off');
+      UTL_FILE.put_line(fich_salida_load, 'select count(*)');
+      UTL_FILE.put_line(fich_salida_load, 'from ' || OWNER_SA || '.' || reg_tabla.TABLE_NAME || ';');
+      UTL_FILE.put_line(fich_salida_load, 'quit');
+      UTL_FILE.put_line(fich_salida_load, '!eof`');
+    else
+      UTL_FILE.put_line(fich_salida_load, '  CONTEO_ARCHIVO=`cat ${PATH_SALIDA}${ARCHIVO_SALIDA} | wc -l`');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
     UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar el conteo del fichero (ERROR al ejecutar wc)."');
-    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar el conteo de la interfaz ${ARCHIVO_SALIDA} (El error surgio al ejecutar wc)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+    UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar el conteo de la interfaz ' || reg_tabla.TABLE_NAME || ' (El error surgio al ejecutar wc)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
     UTL_FILE.put_line(fich_salida_load, '    echo `date`');
     UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
     UTL_FILE.put_line(fich_salida_load, '    exit 1');
@@ -3051,8 +3211,12 @@ begin
     UTL_FILE.put_line(fich_salida_load, '#OBTENEMOS Interfaz');
     UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz');
     UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
-    UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
-    UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
+    if (v_type_validation <> 'I') then
+    /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
+    /* va a las tablas de Stagin sin pasar por ficehro plano */
+      UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
+      UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
+    end if;
     UTL_FILE.put_line(fich_salida_load, 'InsertaFinOK');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# FIN DEL SHELL                                                                #');
