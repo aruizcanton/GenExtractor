@@ -3298,6 +3298,184 @@ begin
     /*************************/
     /*************************/
     /*************************/
+    /* (20160608) Angel Ruiz. NF: Para el tipo de validacion I. */
+    /* Aqui implemento la generación de dos nuevos scripts. */
+    /* para la extraccion a fichero plano desde la tabla de Staging que es donde esta cargada */
+    /* estos dos nuevos scripts se encargan de escribir el fichero plano, el caso del script .sql */
+    /* y de llamar a este script desde un script .sh  */
+    
+    /* Lo que hacemos es crear dos scripts mas .sql y .sh para generar el fichero plano a partir de los datos de la */
+    /* tabla de Stagin en la que se ha almacenado despues de extraerlos y para llamar a este script .sql respectivamente */
+    if (v_type_validation = 'I') then
+      nombre_fich_pkg_desde_stage := REQ_NUMBER || '_FROM_SA_' || reg_tabla.TABLE_NAME || '.sql';
+      fich_salida_pkg_desde_stage := UTL_FILE.FOPEN ('SALIDA',nombre_fich_pkg_desde_stage,'W');
+      
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'WHENEVER SQLERROR EXIT 1;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'WHENEVER OSERROR EXIT 2;');
+      if (v_type = 'P') then
+        UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET LINESIZE ' || v_line_size || ';');
+      end if;
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET PAGESIZE 0;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET FEEDBACK OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET VERIFY OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET HEADING OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET DOC OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET ECHO OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET TRIMSPOOL OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET TERM OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET TRIMS OFF;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SET ARRAYSIZE 2500;');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SPOOL &' || '1');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'');
+      /******/
+      /* COMIEZO LA GENERACION DEL SQL */
+      select trim(SEPARATOR) into v_separador_campos from MTDT_INTERFACE_SUMMARY where CONCEPT_NAME = reg_tabla.TABLE_NAME;
+      dbms_output.put_line ('Comienzo la generacion del SCRIPT .sql para extraer desde tablas de STAGING');
+      dbms_output.put_line ('ALIHOP');
+      /* Miro si se trata de un fichero con separador o de longitud fija */
+      UTL_FILE.put_line(fich_salida_pkg_desde_stage,'SELECT ');
+      primera_col := 1;
+      open MTDT_INTERFAZ_DETAIL (reg_tabla.TABLE_NAME);
+      loop
+        fetch MTDT_INTERFAZ_DETAIL
+        into reg_interface_detail;
+        exit when MTDT_INTERFAZ_DETAIL%NOTFOUND;
+        if (primera_col = 1) then
+          if (v_type = 'S') then
+          /* se trata de que hay que generar un interfaz con separador de campos */
+            UTL_FILE.put_line(fich_salida_pkg_desde_stage, reg_interface_detail.COLUMNA);
+          else
+          /* se trata de que hay que generar un interfaz por posicion fija */
+            case 
+              when reg_interface_detail.TYPE = 'AN' then
+                /* Se tarta de un valor de tipo alfanumerico */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'RPAD(NVL(' || reg_interface_detail.COLUMNA || ','' ''), ' || reg_interface_detail.LENGTH || ', '' '')');
+              when reg_interface_detail.TYPE = 'NU' then
+                /* Se trata de un valor de tipo numerico */
+                --UTL_FILE.put_line(fich_salida_pkg, 'CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD || ', '' '') ELSE LPAD(' || columna || ', ' || reg_detail.LONGITUD || ', ''0'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'NVL(LPAD(' || reg_interface_detail.COLUMNA || ', ' || reg_interface_detail.LENGTH || ', ''0''), RPAD('' '', ' || reg_interface_detail.LENGTH || ', '' ''))');
+              when reg_interface_detail.TYPE = 'IM' then
+                /*(20160503) Angel Ruiz */
+                /* Se trata de un valor de tipo importe */
+                if (instr(reg_interface_detail.LENGTH, ',') > 0 ) then
+                  /* Quiere decir que en la longitud aparecen zona de decimales */
+                  /* Preparo la mascara */
+                  v_long_total := to_number(substr(reg_interface_detail.LENGTH, 1, instr(reg_interface_detail.LENGTH, ',') -1));
+                  v_long_parte_decimal := to_number(trim(substr(reg_interface_detail.LENGTH, instr(reg_interface_detail.LENGTH, ',') +1)));
+                  v_mascara := 'S';
+                  for indice in  1..(v_long_total-v_long_parte_decimal-2)
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  v_mascara := v_mascara || '.';
+                  for indice in  1..v_long_parte_decimal
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'NVL(TO_CHAR(' || reg_interface_detail.LENGTH || ', ''' || v_mascara || '''), RPAD('' '', ' || to_char(to_number(substr(reg_interface_detail.LENGTH, 1, instr(reg_interface_detail.LENGTH, ',') -1))) || ', '' ''))');
+                else
+                  /* Quiere decir que en la longitud no aparece zona de decimales */
+                  v_long_total := to_number (trim(reg_interface_detail.LENGTH));
+                  v_long_parte_decimal := 0;
+                  v_mascara := 'S';
+                  for indice in  1..(v_long_total-v_long_parte_decimal-1)
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''' || v_mascara || '''), RPAD('' '', ' || reg_interface_detail.LENGTH || ', '' ''))');
+                end if;
+              when reg_interface_detail.TYPE = 'FE' then
+                /* Se trata de un valor de tipo fecha */
+                if (reg_interface_detail.LENGTH = 8) then
+                  --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD ||', '' '') ELSE TO_CHAR(' || columna || ', ''YYYYMMDD'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''YYYYMMDD''), RPAD('' '',' || reg_interface_detail.LENGTH ||', '' ''))');
+                else
+                  --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD ||', '' '') ELSE TO_CHAR(' || columna || ', ''YYYYMMDDHH24MISS'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''YYYYMMDDHH24MISS''), RPAD('' '',' || reg_interface_detail.LENGTH ||', '' ''))');
+                end if;
+              when reg_interface_detail.TYPE = 'TI' then
+                /* Se trata de un valor de tipo TIME HHMISS */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'RPAD(NVL(' || reg_interface_detail.COLUMNA || ', '' ''), ' || reg_interface_detail.LENGTH || ', '' '')');
+            end case;
+          end if;
+          primera_col:=0;
+        else
+          if (v_type = 'S') then
+            /* Se trata de un fichero plano con separador */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, '||' || v_separador_campos || reg_interface_detail.COLUMNA);
+          else    /* Se trata de un fichero plano por posicion */
+            case
+              when reg_interface_detail.TYPE = 'AN' then
+                /* Se tarta de un valor de tipo alfanumerico */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| RPAD(NVL(' || reg_interface_detail.COLUMNA || ', '' ''), ' || reg_interface_detail.LENGTH || ', '' '')');
+              when reg_interface_detail.TYPE = 'NU' then
+                /* Se trata de un valor de tipo numerico */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| NVL(LPAD(' || reg_interface_detail.COLUMNA || ', ' || reg_interface_detail.LENGTH || ', ''0''), RPAD('' '', ' || reg_interface_detail.LENGTH || ', '' ''))');
+              when reg_interface_detail.TYPE = 'IM' then
+                /***************************************/
+                /*(20160503) Angel Ruiz */
+                /* Se trata de un valor de tipo importe */
+                if (instr(reg_interface_detail.LENGTH, ',') > 0 ) then
+                  /* Quiere decir que en la longitud aparecen zona de decimales */
+                  /* Preparo la mascara */
+                  v_long_total := to_number(substr(reg_interface_detail.LENGTH, 1, instr(reg_interface_detail.LENGTH, ',') -1));
+                  v_long_parte_decimal := to_number(trim(substr(reg_interface_detail.LENGTH, instr(reg_interface_detail.LENGTH, ',') +1)));
+                  v_mascara := 'S';
+                  for indice in  1..(v_long_total-v_long_parte_decimal-2)
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  v_mascara := v_mascara || '.';
+                  for indice in  1..v_long_parte_decimal
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''' || v_mascara || '''), RPAD('' '', ' || to_char(to_number(substr(reg_interface_detail.LENGTH, 1, instr(reg_interface_detail.LENGTH, ',') -1))) || ', '' ''))');
+                else
+                  /* Quiere decir que en la longitud no aparece zona de decimales */
+                  v_long_total := to_number (trim(reg_interface_detail.LENGTH));
+                  v_long_parte_decimal := 0;
+                  v_mascara := 'S';
+                  for indice in  1..(v_long_total-v_long_parte_decimal-1)
+                  loop
+                    v_mascara := v_mascara || '0';
+                  end loop;
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''' || v_mascara || '''), RPAD('' '', ' || reg_interface_detail.LENGTH || ', '' ''))');
+                end if;
+              when reg_interface_detail.TYPE = 'FE' then
+                /* Se trata de un valor de tipo fecha */
+                if (reg_interface_detail.LENGTH = 8) then
+                  --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD ||', '' '') ELSE TO_CHAR(' || columna || ', ''YYYYMMDD'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''YYYYMMDD''), RPAD('' '',' || reg_interface_detail.LENGTH ||', '' ''))');
+                else
+                  --UTL_FILE.put_line(fich_salida_pkg, '|| CASE WHEN ' || columna || ' IS NULL THEN RPAD('' '',' || reg_detail.LONGITUD ||', '' '') ELSE TO_CHAR(' || columna || ', ''YYYYMMDDHH24MISS'') END' || '          --' || reg_detail.TABLE_COLUMN);
+                  UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| NVL(TO_CHAR(' || reg_interface_detail.COLUMNA || ', ''YYYYMMDDHH24MISS''), RPAD('' '',' || reg_interface_detail.LENGTH ||', '' ''))');
+                end if;
+              when reg_interface_detail.TYPE = 'TI' then
+                /* Se trata de un valor de tipo TIME HHMISS */
+                UTL_FILE.put_line(fich_salida_pkg_desde_stage, '|| RPAD(NVL(' || reg_interface_detail.COLUMNA || ', '' ''), ' || reg_interface_detail.LENGTH || ', '' '')');
+            end case;
+          end if;
+        end if;
+      end loop;
+      close MTDT_INTERFAZ_DETAIL;
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'FROM');
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,'SA_' || reg_tabla.TABLE_NAME);      
+      UTL_FILE.put_line (fich_salida_pkg_desde_stage,';');
+      UTL_FILE.put_line(fich_salida_pkg_desde_stage, '');
+      /* (20160606) Angel Ruiz. NF: Se trata de la validación en la que en lugar de ir a un fichero plano */
+      /* va directamente a las tablas de Stagin */
+      UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'SPOOL OFF;');
+      UTL_FILE.put_line(fich_salida_pkg_desde_stage, 'exit SUCCESS;');
+      UTL_FILE.put_line(fich_salida_pkg_desde_stage, '');
+
+      UTL_FILE.FCLOSE (fich_salida_pkg_desde_stage);
+      
+    end if;
+
+
+    
     UTL_FILE.FCLOSE (fich_salida_load);
     --UTL_FILE.FCLOSE (fich_salida_exchange);
     UTL_FILE.FCLOSE (fich_salida_pkg);
