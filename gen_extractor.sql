@@ -20,7 +20,7 @@ SELECT
     , 'PLAN_TARIFARIO', 'REL_PLAN_TARIFARIO_CANAL', 'CARACT_PLAN_TARIFARIO', 'SVA', 'REL_SVA_CANAL'
     , 'CARACT_SVA', 'TIPO_PROPIETARIO_OFERTA', 'ESTATUS_OFERTA', 'MEDIO_FACTURA'
     , 'CANAL_OFERTA', 'TARJETA_PAGO', 'OFICINA', 'POSICION_VENDEDOR_CAP'
-    , 'CANAL', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL'
+    , 'CANAL_CAP', 'VENDEDOR', 'PUNTO_VENTA', 'BANCO', 'CATEGORIA_CLIENTE', 'PROMOCION', 'USUARIO_SCL'
     , 'PARQUE_SVA', 'CART_VENCIDA', 'CAUSA_PAGO', 'CONCEPTO_FACTURA', 'DOC_CANCELADO'
     , 'FACT_DETALLE', 'FACT_RESUMEN', 'PAGO', 'NODO', 'TIPO_NODO'
     , 'MOVIMIENTO_ABO', 'ESTADO_TAREA', 'FORMA_CONTACTO', 'PRIORIDAD', 'TIPO_TRANSACCION'
@@ -32,6 +32,7 @@ SELECT
     , 'PROVEEDOR_TELCO', 'MEDIO_CONTACTO', 'UNIDAD_FUNCIONAL2', 'UNIDAD_FUNCIONAL1'
     , 'CENTRO_ATENCION', 'ESTADO_CONTACTO'
     );
+    
     --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_PROMO_CAMPANA', 'MOV_PROMO_CAMPANA'
     --);
       --and trim(MTDT_EXT_SCENARIO.TABLE_NAME) in ('PARQUE_ABO_PRE', 'PARQUE_ABO_POST', 'CLIENTE', 'CUENTA', 
@@ -230,6 +231,7 @@ SELECT
   pos_fin_hora                              PLS_integer;
   v_country                            varchar2(20);
   v_type_validation                   varchar2(1);
+  v_separador_campos                VARCHAR2(1);
   
 
 
@@ -2993,13 +2995,31 @@ begin
     UTL_FILE.put_line(fich_salida_load, '  fi');
     UTL_FILE.put_line(fich_salida_load, '  return 0');
     UTL_FILE.put_line(fich_salida_load, '}');
-    UTL_FILE.put_line(fich_salida_load, '################################################################################');
-    UTL_FILE.put_line(fich_salida_load, '# SE OBTIENE LA INTERFAZ                                                       #');
-    UTL_FILE.put_line(fich_salida_load, '################################################################################');
-    UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz()');
+    if (v_type_validation = 'I') then
+      /* (20160620) Angel Ruiz. NF: Implemento la Validacion tipo I donde los datos extraidos van directamente */
+      /* a las tablas de STAGING. Por claridad cuando esto sucede le cambio el nombre al procedure que lo hace */
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+      UTL_FILE.put_line(fich_salida_load, '# SE CARGA LA TABLA DE STAGING                                                 #');
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+    else
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+      UTL_FILE.put_line(fich_salida_load, '# SE OBTIENE LA INTERFAZ                                                       #');
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+    end if;
+    if (v_type_validation = 'I') then
+      /* (20160620) Angel Ruiz. NF: Implemento la Validacion tipo I donde los datos extraidos van directamente */
+      /* a las tablas de STAGING. Por claridad cuando esto sucede le cambio el nombre al procedure que lo hace */
+      UTL_FILE.put_line(fich_salida_load, 'CargaDirectaTablaStaging()');
+    else
+      UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz()');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '{');
     --UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="${NOM_INTERFAZ}_${FECHA}"');
-    UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="' || nombre_interface_a_cargar || '"');
+    if (v_type_validation <> 'I') then
+      /* (20160620) Angel Ruiz. NF: Implemento la Validacion tipo I donde los datos extraidos van directamente */
+      /* a las tablas de STAGING. No es necesario declarar el fichero de salida cuando estamos llevando los datos directamente a las tablas de Staging */
+      UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="' || nombre_interface_a_cargar || '"');
+    end if;
     UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SQL="${REQ_NUM}_' || reg_tabla.TABLE_NAME || '.sql"');
     if (v_tabla_dinamica = true and v_fecha_ini_param = false and v_fecha_fin_param = false) then
       /* (20160414) Angel Ruiz. Si existe tabla dinamica, entonces hay que hacer una llamada al sqlplus con un parametro mas  */
@@ -3058,6 +3078,35 @@ begin
     end if;
     UTL_FILE.put_line(fich_salida_load, '  return 0');
     UTL_FILE.put_line(fich_salida_load, '}');
+
+
+    if (v_type_validation = 'I') then
+      /* (20160620) Angel Ruiz. NF: Implemento la Validacion tipo I donde los datos extraidos van directamente */
+      /* a las tablas de STAGING. Por claridad cuando esto sucede le cambio el nombre al procedure que lo hace */
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+      UTL_FILE.put_line(fich_salida_load, '# SE OBTIENE LA INTERFAZ                                                       #');
+      UTL_FILE.put_line(fich_salida_load, '################################################################################');
+      UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz()');
+      UTL_FILE.put_line(fich_salida_load, '{');
+      --UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="${NOM_INTERFAZ}_${FECHA}"');
+      UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SALIDA="' || nombre_interface_a_cargar || '"');
+      UTL_FILE.put_line(fich_salida_load, '  ARCHIVO_SQL="${REQ_NUM}_' || 'FROM_SA_' || reg_tabla.TABLE_NAME || '.sql"');
+      UTL_FILE.put_line(fich_salida_load, '  sqlplus ${BD_USR}/${BD_PWD}@${BD_SID} @${PATH_SQL}${ARCHIVO_SQL} ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+      UTL_FILE.put_line(fich_salida_load, '  if [ $? -ne 0 ]; then');
+      UTL_FILE.put_line(fich_salida_load, '    SUBJECT="${REQ_NUM}:  ERROR: Al generar la interfaz ${ARCHIVO_SQL} (ERROR al ejecutar sqlplus)."');
+      UTL_FILE.put_line(fich_salida_load, '    echo "Surgio un error al generar la interfaz ${ARCHIVO_SALIDA} (El error surgio al ejecutar sqlplus)." | mailx -s "${SUBJECT}" "${CTA_MAIL}"');
+      UTL_FILE.put_line(fich_salida_load, '    echo `date`');
+      UTL_FILE.put_line(fich_salida_load, '    InsertaFinFallido');
+      UTL_FILE.put_line(fich_salida_load, '    exit 1');
+      UTL_FILE.put_line(fich_salida_load, '  fi');
+      UTL_FILE.put_line(fich_salida_load, '  ValidaInformacionArchivo ${PATH_SALIDA}${ARCHIVO_SALIDA}');
+      UTL_FILE.put_line(fich_salida_load, '  return 0');
+      UTL_FILE.put_line(fich_salida_load, '}');
+    
+    end if;
+    
+    
+    
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# SE VALIDA EL NUMERO DE REGISTROS DE LA INTERFAZ                              #');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
@@ -3071,7 +3120,7 @@ begin
       UTL_FILE.put_line(fich_salida_load, 'set pagesize 0');
       UTL_FILE.put_line(fich_salida_load, 'set heading off');
       UTL_FILE.put_line(fich_salida_load, 'select count(*)');
-      UTL_FILE.put_line(fich_salida_load, 'from ' || OWNER_SA || '.' || reg_tabla.TABLE_NAME || ';');
+      UTL_FILE.put_line(fich_salida_load, 'from ' || OWNER_SA || '.SA_' || reg_tabla.TABLE_NAME || ';');
       UTL_FILE.put_line(fich_salida_load, 'quit');
       UTL_FILE.put_line(fich_salida_load, '!eof`');
     else
@@ -3223,15 +3272,20 @@ begin
     UTL_FILE.put_line(fich_salida_load, 'ObtieneFecha $1');
     UTL_FILE.put_line(fich_salida_load, '#OBTIENE LA FECHA Y HORA DEL SISTEMA');
     UTL_FILE.put_line(fich_salida_load, 'ObtieneFechaHora');
-    UTL_FILE.put_line(fich_salida_load, '#OBTENEMOS Interfaz');
-    UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz');
-    UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
-    if (v_type_validation <> 'I') then
-    /* (20160607) Angel Ruiz. Si se trata de validacion I desde la extraccion */
-    /* va a las tablas de Stagin sin pasar por ficehro plano */
-      UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
-      UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
+    if (v_type_validation = 'I') then
+      /* (20160620) Angel Ruiz. NF: Implemento la Validacion tipo I donde los datos extraidos van directamente */
+      /* a las tablas de STAGING. Por claridad cuando esto sucede le cambio el nombre al procedure que lo hace */
+      UTL_FILE.put_line(fich_salida_load, '#OBTENEMOS Interfaz y la cargamos directamente sobre las tablas de STAGING');
+      UTL_FILE.put_line(fich_salida_load, 'CargaDirectaTablaStaging');
+      UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
+      UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz');
+    else
+      UTL_FILE.put_line(fich_salida_load, '#OBTENEMOS Interfaz');
+      UTL_FILE.put_line(fich_salida_load, 'ObtenInterfaz');
+      UTL_FILE.put_line(fich_salida_load, 'ValidaConteo');
     end if;
+    UTL_FILE.put_line(fich_salida_load, 'GeneraFlag');    
+    UTL_FILE.put_line(fich_salida_load, 'EnviaArchivos');
     UTL_FILE.put_line(fich_salida_load, 'InsertaFinOK');
     UTL_FILE.put_line(fich_salida_load, '################################################################################');
     UTL_FILE.put_line(fich_salida_load, '# FIN DEL SHELL                                                                #');
